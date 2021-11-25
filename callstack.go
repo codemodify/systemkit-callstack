@@ -6,39 +6,48 @@ import (
 	"strings"
 )
 
-// Frame -
 type Frame struct {
 	File string `json:"file"`
 	Line int    `json:"line"`
 	Func string `json:"function"`
 }
 
-// String - `stringer` interface
 func (thisRef Frame) String() string {
 	data, _ := json.Marshal(thisRef)
 	return string(data)
 }
 
-// GetFrames - Gets the call stack with no frames skipped
+// Get - return current call frame
+func Get() Frame {
+	callStack := GetFramesWithSkip(4)
+
+	if len(callStack) == 0 {
+		return Frame{}
+	}
+
+	return callStack[0]
+}
+
+// GetFrames - return call stack, no skips
 func GetFrames() []Frame {
-	return GetFramesWithSkip(0)
+	return GetFramesWithSkip(4)
 }
 
-// GetFramesWithSkip - Gets the call stack with N skipped frames
+// GetFramesWithSkip - return call stack, skip N frames
 func GetFramesWithSkip(skip int) []Frame {
-	return GetFramesFromRawFrames(GetRawFrames(skip))
+	return NativeFramesToFrames(GetNativeFrames(skip))
 }
 
-// GetRawFrames -
-func GetRawFrames(skip int) []uintptr {
+// GetNativeFrames - return Go native call stack
+func GetNativeFrames(skip int) []uintptr {
 	const callStackDepth = 50 // most relevant context seem to appear near the top of the stack
 	var callStackBuffer = make([]uintptr, callStackDepth)
 	callStackSize := runtime.Callers(skip, callStackBuffer)
 	return callStackBuffer[:callStackSize]
 }
 
-// GetFramesFromRawFrames -
-func GetFramesFromRawFrames(callStack []uintptr) []Frame {
+// NativeFramesToFrames - converts native call stack to []Frame
+func NativeFramesToFrames(callStack []uintptr) []Frame {
 	frames := []Frame{}
 
 	callStackFrames := runtime.CallersFrames(callStack)

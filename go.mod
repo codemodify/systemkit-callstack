@@ -1,3 +1,3 @@
-module github.com/codemodify/systemkit-callstack
+module goframework.io/callstack
 
-go 1.15
+go 1.17
